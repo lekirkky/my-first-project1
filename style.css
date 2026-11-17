@@ -1,0 +1,52 @@
+/* CSS = the PAINT and CLOTHES. It says how things LOOK. */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;          /* puts everything in the middle */
+  font-family: Georgia, serif;
+  background: #cfe8f7;          /* light sky blue */
+  color: #16324a;
+  transition: background 0.6s;  /* smooth color change */
+}
+
+main { width: min(90%, 380px); text-align: center; }
+
+h1 { font-size: 2rem; margin-bottom: 1rem; }
+
+.search { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+
+input {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  border: 2px solid #16324a;
+  border-radius: 10px;
+}
+
+button {
+  padding: 12px 18px;
+  font-size: 1rem;
+  background: #16324a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+button:hover { background: #2b5a85; }
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.icon { font-size: 4rem; margin: 0; }
+.temp { font-size: 3.5rem; margin: 0; font-weight: bold; }
+
+/* These classes get added by JavaScript to change the sky color */
+body.rainy  { background: #9fb3c4; }
+body.cloudy { background: #c9d1d8; }
+body.sunny  { background: #ffe29a; }
+body.stormy { background: #7a8794; }
