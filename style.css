@@ -6,7 +6,10 @@
    3. The oil painting background
    4. Search box and button
    5. The glass weather card
-   6. Small screens + reduced motion
+   6. Search suggestions (the dropdown)
+   7. Weather panels (details, hourly, 5-day)
+   8. The living sky (sun and clouds)
+   9. Small screens + reduced motion
 */
 
 
@@ -22,41 +25,55 @@
 @property --c4    { syntax: "<color>"; inherits: true; initial-value: #f29a4a; }
 @property --c5    { syntax: "<color>"; inherits: true; initial-value: #3f9a6e; }
 @property --cloud { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.6); }
+@property --puff       { syntax: "<color>"; inherits: true; initial-value: #ffffff; }
+@property --puff-shade { syntax: "<color>"; inherits: true; initial-value: #bcd3ea; }
 @property --ink   { syntax: "<color>"; inherits: true; initial-value: #14264a; }
 @property --glass { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.30); }
 
 /* c1 = top of sky, c2 = middle sky, c3 = sun/glow, c4 = horizon light, c5 = hills
-   cloud = cloud color, ink = text color, glass = card color */
+   cloud = cloud color, ink = text color, glass = card color, pop = dropdown color */
 
 body, body.sunny {
   --c1: #2e6fd0; --c2: #7fc3f0; --c3: #ffd34e; --c4: #f29a4a; --c5: #3f9a6e;
   --cloud: rgba(255,255,255,0.60);
+  --puff: #ffffff; --puff-shade: #bcd3ea;
   --ink: #14264a; --glass: rgba(255,255,255,0.30);
+  --pop: rgba(236,247,255,0.94);
 }
 body.cloudy {
   --c1: #6f7f96; --c2: #aab6c4; --c3: #e4e0d4; --c4: #8e9aa8; --c5: #5d7a6a;
   --cloud: rgba(240,240,240,0.50);
+  --puff: #e3e6ea; --puff-shade: #9aa5b4;
   --ink: #1d2433; --glass: rgba(255,255,255,0.30);
+  --pop: rgba(240,243,246,0.94);
 }
 body.rainy {
   --c1: #34465f; --c2: #5f7a94; --c3: #8fb0c0; --c4: #6d8fa0; --c5: #2f4f55;
   --cloud: rgba(190,205,220,0.30);
+  --puff: #8c9db0; --puff-shade: #4a5a70;
   --ink: #f1f6fa; --glass: rgba(18,24,40,0.38);
+  --pop: rgba(34,46,66,0.95);
 }
 body.stormy {
   --c1: #1c1a33; --c2: #3b3560; --c3: #a58bd0; --c4: #d9a441; --c5: #1f2a35;
   --cloud: rgba(110,100,150,0.35);
+  --puff: #5c5878; --puff-shade: #25223f;
   --ink: #f4f0ff; --glass: rgba(18,16,34,0.42);
+  --pop: rgba(34,30,60,0.95);
 }
 body.snowy {
   --c1: #8fb1d9; --c2: #dbe8f5; --c3: #ffffff; --c4: #c9b8e0; --c5: #aac4d6;
   --cloud: rgba(255,255,255,0.60);
+  --puff: #ffffff; --puff-shade: #cdd9e8;
   --ink: #1f2f4a; --glass: rgba(255,255,255,0.34);
+  --pop: rgba(244,249,255,0.95);
 }
 body.misty {
   --c1: #9aa7a3; --c2: #c9d1cc; --c3: #efe9dc; --c4: #b7b0a0; --c5: #8da093;
   --cloud: rgba(255,255,255,0.45);
+  --puff: #f1eee6; --puff-shade: #b9b6aa;
   --ink: #26302d; --glass: rgba(255,255,255,0.32);
+  --pop: rgba(244,243,236,0.95);
 }
 
 
@@ -68,20 +85,21 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);   /* the column can never be wider than the screen */
   place-items: center;               /* puts the content in the middle */
   font-family: "Nunito Sans", system-ui, sans-serif;
   color: var(--ink);
   background: var(--c2);             /* backup color while things load */
 
   /* Slowly blend colors when the weather mood changes */
-  transition-property: --c1, --c2, --c3, --c4, --c5, --cloud, --ink, --glass;
+  transition-property: --c1, --c2, --c3, --c4, --c5, --cloud, --puff, --puff-shade, --ink, --glass;
   transition-duration: 1s;
 }
 
 .svg-defs { position: absolute; }    /* the invisible filter takes no space */
 
 main {
-  width: min(92%, 420px);
+  width: min(92%, 640px);
   padding: 24px 0;
   text-align: center;
 }
@@ -102,11 +120,9 @@ h1 {
   position: fixed;
   inset: -60px;                      /* a bit bigger than the screen so wobbly edges stay hidden */
   z-index: -2;
-  /* Layers, top to bottom: sun glow, cloud patches, far hill, near hill, sky */
+  /* Layers, top to bottom: sun glow, far hill, near hill, sky. (Clouds are now real, moving ones.) */
   background:
     radial-gradient(ellipse 34% 26% at 76% 22%, var(--c3) 0%, transparent 72%),
-    radial-gradient(ellipse 46% 14% at 22% 26%, var(--cloud) 0%, transparent 72%),
-    radial-gradient(ellipse 40% 12% at 68% 44%, var(--cloud) 0%, transparent 72%),
     radial-gradient(ellipse 70% 24% at 20% 104%, var(--c5) 0 70%, transparent 71%),
     radial-gradient(ellipse 60% 20% at 85% 106%, color-mix(in srgb, var(--c5) 65%, black) 0 70%, transparent 71%),
     linear-gradient(180deg, var(--c1) 0%, var(--c2) 55%, var(--c4) 80%, var(--c5) 100%);
@@ -149,7 +165,8 @@ h1 {
 }
 
 input {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   min-width: 0;                      /* lets the box shrink on small phones */
   padding: 14px 18px;
   font: inherit;
@@ -189,7 +206,8 @@ button:focus-visible {
 /* ============================================================
    5. THE GLASS WEATHER CARD */
 
-.card {
+.card,
+.panel {
   padding: 28px 24px 24px;
   background: var(--glass);
   border: 1px solid rgba(255,255,255,0.45);
@@ -232,36 +250,262 @@ button:focus-visible {
 }
 
 .description {
-  margin: 0 0 18px;
+  margin: 0 0 4px;
   font-size: 1.15rem;
 }
 
-.pills {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.pill {
-  margin: 0;
-  padding: 9px 16px;
-  font-weight: 600;
-  background: rgba(255,255,255,0.18);
-  border: 1px solid rgba(255,255,255,0.4);
-  border-radius: 999px;
-}
-.pill-label { font-weight: 400; opacity: 0.8; }
 
 
 /* ============================================================
-   6. SMALL SCREENS + REDUCED MOTION */
+   6. SEARCH SUGGESTIONS (the dropdown under the search box) */
+
+.search { position: relative; z-index: 10; }      /* lifts the dropdown above the panels */
+.search-field { position: relative; flex: 1; min-width: 0; }
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  text-align: left;
+  background: var(--pop);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 22px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.suggestions li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+.suggestions li.is-active { background: color-mix(in srgb, var(--ink) 14%, transparent); }
+.s-name   { font-weight: 600; }
+.s-region { font-size: 0.85rem; opacity: 0.75; }
+
+
+/* ============================================================
+   7. WEATHER PANELS (details, hourly, 5-day) */
+
+.region  { margin: 2px 0 0; font-size: 0.95rem; opacity: 0.75; }
+.highlow { margin: 0; opacity: 0.85; }
+
+.panel {
+  margin-top: 16px;
+  padding: 18px 18px 16px;
+  text-align: left;
+}
+.panel h2 {
+  margin: 0 0 12px;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+}
+
+/* ---- Detail tiles ---- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.tile {
+  padding: 12px 12px 10px;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 18px;
+}
+.tile p { margin: 0; }
+.tile-label { font-size: 0.85rem; opacity: 0.8; }
+.tile .tile-value {
+  margin-top: 4px;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+.tile .tile-note { margin-top: 4px; font-size: 0.78rem; opacity: 0.75; }
+
+/* ---- Hourly strip (scrolls sideways) ---- */
+.hourly {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 35%, transparent) transparent;
+}
+.hour {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 18px;
+  scroll-snap-align: start;
+}
+.hour p { margin: 0; }
+.hour-time { font-size: 0.85rem; opacity: 0.85; }
+.hour-icon { font-size: 1.6rem; }
+.hour-temp { font-weight: 600; }
+.hour-rain { min-height: 1em; font-size: 0.75rem; opacity: 0.8; }
+
+/* ---- 5-day list ---- */
+.day {
+  display: grid;
+  grid-template-columns: 3.4rem 2rem 3.2rem 2.2rem 1fr 2.2rem;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.25);
+}
+.day:first-child { border-top: none; }
+.day > * { margin: 0; }
+.day-name { font-weight: 600; }
+.day-icon { font-size: 1.4rem; text-align: center; }
+.day-rain { font-size: 0.8rem; opacity: 0.8; }
+.day-low  { text-align: right; opacity: 0.75; }
+.day-high { font-weight: 600; }
+
+/* The little bar: a track with a colored piece showing the day's low-to-high */
+.range {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 999px;
+}
+.range span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--c4), var(--c3));
+}
+
+
+/* ============================================================
+   8. THE LIVING SKY (sun and clouds)
+   Everything here moves using "transform" and "opacity" only.
+   Those are the two cheapest things to animate, so it stays smooth. */
+
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: -1;                       /* above the painting, below the card */
+  overflow: hidden;                  /* clouds disappear neatly at the screen edge */
+  pointer-events: none;
+}
+
+/* ---- The sun ---- */
+.sun {
+  position: absolute;
+  left: 76%;
+  top: 22%;
+  width: 46vmin;
+  height: 46vmin;
+  transform: translate(-50%, -50%);
+  opacity: var(--sun-opacity, 1);    /* script.js sets this: 1 = bright, 0 = hidden */
+  transition: opacity 2s ease;
+}
+.sun span { position: absolute; border-radius: 50%; }
+
+/* Big, soft, warm halo. It slowly swells and shrinks. */
+.sun-halo {
+  inset: -45%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c3) 60%, transparent) 0%, transparent 65%);
+  animation: sun-pulse 8s ease-in-out infinite alternate;
+}
+/* Orange glow that drifts around slowly = the "warm color movement" */
+.sun-warm {
+  inset: -30%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c4) 55%, transparent) 0%, transparent 60%);
+  animation: sun-drift 22s ease-in-out infinite alternate;
+}
+/* The bright middle of the sun. It "breathes". */
+.sun-core {
+  inset: 20%;
+  background: radial-gradient(circle at 40% 38%, #fffbe0 0%, #ffeb9a 30%, color-mix(in srgb, var(--c3) 75%, transparent) 55%, transparent 70%);
+  animation: sun-breathe 6s ease-in-out infinite alternate;
+}
+
+@keyframes sun-pulse   { from { transform: scale(0.9);  opacity: 0.7; } to { transform: scale(1.12); opacity: 1; } }
+@keyframes sun-breathe { from { transform: scale(0.97); }               to { transform: scale(1.05); } }
+@keyframes sun-drift   { from { transform: translate(-6%, -4%); }       to { transform: translate(7%, 5%); } }
+
+/* ---- The clouds ----
+   script.js makes each .cloud and gives it its own private settings:
+   --y (how high), --s (size), --flip (face left or right),
+   --dur (how long one trip takes), --delay (head start), --o (see-through amount) */
+.clouds { position: absolute; inset: 0; }
+
+.cloud {
+  position: absolute;
+  top: var(--y);
+  left: 0;
+  width: 320px;
+  height: 130px;
+  opacity: var(--o, 1);
+  will-change: transform;            /* tells the browser: "this one moves, get ready" */
+  animation:
+    drift var(--dur, 150s) linear infinite,
+    cloud-appear 2s ease-out;        /* new clouds fade in instead of popping */
+  animation-delay: var(--delay, 0s), 0s;
+}
+
+/* One cloud = 5 soft blobs piled together */
+.puff {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 30%,
+    var(--puff) 0%, var(--puff) 36%, var(--puff-shade) 60%, transparent 72%);
+}
+.puff:nth-child(1) { left: 0;     top: 40px; width: 130px; height: 90px; }
+.puff:nth-child(2) { left: 60px;  top: 10px; width: 150px; height: 110px; }
+.puff:nth-child(3) { left: 140px; top: 0;    width: 140px; height: 120px; }
+.puff:nth-child(4) { left: 200px; top: 35px; width: 120px; height: 95px; }
+.puff:nth-child(5) { left: 90px;  top: 50px; width: 170px; height: 80px; }
+
+/* Slide from just off the left edge to just off the right edge */
+@keyframes drift {
+  from { transform: translate3d(-130%, 0, 0)              scale(calc(var(--s) * var(--k, 1) * var(--flip)), calc(var(--s) * var(--k, 1))); }
+  to   { transform: translate3d(calc(100vw + 20%), 0, 0)  scale(calc(var(--s) * var(--k, 1) * var(--flip)), calc(var(--s) * var(--k, 1))); }
+}
+@keyframes cloud-appear { from { opacity: 0; } }
+
+
+/* ============================================================
+   9. SMALL SCREENS + REDUCED MOTION */
+
+@media (max-width: 600px) {
+  .sky { --k: 0.65; }                /* smaller clouds on phones */
+}
+
+@media (max-width: 520px) {
+  .tiles { grid-template-columns: repeat(2, 1fr); }   /* 2 tiles per row on phones */
+}
 
 @media (max-width: 380px) {
-  .pills { flex-direction: column; align-items: center; }
   .search { flex-direction: column; }
 }
 
 /* Some people turn off motion in their phone settings. We respect that. */
 @media (prefers-reduced-motion: reduce) {
   body, button { transition: none; }
+  .sun-halo, .sun-warm, .sun-core { animation: none; }
+  /* Clouds stay still, parked at their own spot */
+  .cloud {
+    animation: none;
+    left: var(--x, 20%);
+    transform: scale(calc(var(--s) * var(--k, 1) * var(--flip)), calc(var(--s) * var(--k, 1)));
+  }
 }
