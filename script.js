@@ -8,16 +8,17 @@ const cityName = document.getElementById("cityName");
 const icon = document.getElementById("icon");
 const temp = document.getElementById("temp");
 const description = document.getElementById("description");
-const details = document.getElementById("details");
+const humidity = document.getElementById("humidity");
+const wind = document.getElementById("wind");
 
 // Step 2: the weather service gives us a NUMBER (a "code") for the weather.
 // This list turns each number into words and a picture.
 function describeWeather(code) {
   if (code === 0) return { text: "Clear sky", emoji: "☀️", mood: "sunny" };
   if (code <= 3) return { text: "Partly cloudy", emoji: "⛅", mood: "cloudy" };
-  if (code <= 48) return { text: "Foggy", emoji: "🌫️", mood: "cloudy" };
+  if (code <= 48) return { text: "Foggy", emoji: "🌫️", mood: "misty" };
   if (code <= 67) return { text: "Rain", emoji: "🌧️", mood: "rainy" };
-  if (code <= 77) return { text: "Snow", emoji: "❄️", mood: "cloudy" };
+  if (code <= 77) return { text: "Snow", emoji: "❄️", mood: "snowy" };
   if (code <= 82) return { text: "Rain showers", emoji: "🌦️", mood: "rainy" };
   return { text: "Thunderstorm", emoji: "⛈️", mood: "stormy" };
 }
@@ -60,7 +61,8 @@ async function getWeather() {
     icon.textContent = look.emoji;
     temp.textContent = Math.round(now.temperature_2m) + "°C";
     description.textContent = look.text;
-    details.textContent = "Humidity " + now.relative_humidity_2m + "%  ·  Wind " + now.wind_speed_10m + " km/h";
+    humidity.textContent = now.relative_humidity_2m + "%";
+    wind.textContent = now.wind_speed_10m + " km/h";
 
     // 3d. Change the sky color to match the weather.
     document.body.className = look.mood;

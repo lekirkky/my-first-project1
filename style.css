@@ -1,52 +1,267 @@
-/* CSS = the PAINT and CLOTHES. It says how things LOOK. */
+/* CSS = the PAINT and CLOTHES. It says how things LOOK.
+   This file is split into numbered sections so it stays easy to find things.
+
+   1. Paint colors for each weather mood
+   2. Page basics
+   3. The oil painting background
+   4. Search box and button
+   5. The glass weather card
+   6. Small screens + reduced motion
+*/
+
+
+/* ============================================================
+   1. PAINT COLORS FOR EACH WEATHER MOOD
+   Each mood is a little "paint box" of named colors.
+   @property tells the browser these are colors, so it can
+   slowly blend from one mood to the next. */
+
+@property --c1    { syntax: "<color>"; inherits: true; initial-value: #2e6fd0; }
+@property --c2    { syntax: "<color>"; inherits: true; initial-value: #7fc3f0; }
+@property --c3    { syntax: "<color>"; inherits: true; initial-value: #ffd34e; }
+@property --c4    { syntax: "<color>"; inherits: true; initial-value: #f29a4a; }
+@property --c5    { syntax: "<color>"; inherits: true; initial-value: #3f9a6e; }
+@property --cloud { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.6); }
+@property --ink   { syntax: "<color>"; inherits: true; initial-value: #14264a; }
+@property --glass { syntax: "<color>"; inherits: true; initial-value: rgba(255,255,255,0.30); }
+
+/* c1 = top of sky, c2 = middle sky, c3 = sun/glow, c4 = horizon light, c5 = hills
+   cloud = cloud color, ink = text color, glass = card color */
+
+body, body.sunny {
+  --c1: #2e6fd0; --c2: #7fc3f0; --c3: #ffd34e; --c4: #f29a4a; --c5: #3f9a6e;
+  --cloud: rgba(255,255,255,0.60);
+  --ink: #14264a; --glass: rgba(255,255,255,0.30);
+}
+body.cloudy {
+  --c1: #6f7f96; --c2: #aab6c4; --c3: #e4e0d4; --c4: #8e9aa8; --c5: #5d7a6a;
+  --cloud: rgba(240,240,240,0.50);
+  --ink: #1d2433; --glass: rgba(255,255,255,0.30);
+}
+body.rainy {
+  --c1: #34465f; --c2: #5f7a94; --c3: #8fb0c0; --c4: #6d8fa0; --c5: #2f4f55;
+  --cloud: rgba(190,205,220,0.30);
+  --ink: #f1f6fa; --glass: rgba(18,24,40,0.38);
+}
+body.stormy {
+  --c1: #1c1a33; --c2: #3b3560; --c3: #a58bd0; --c4: #d9a441; --c5: #1f2a35;
+  --cloud: rgba(110,100,150,0.35);
+  --ink: #f4f0ff; --glass: rgba(18,16,34,0.42);
+}
+body.snowy {
+  --c1: #8fb1d9; --c2: #dbe8f5; --c3: #ffffff; --c4: #c9b8e0; --c5: #aac4d6;
+  --cloud: rgba(255,255,255,0.60);
+  --ink: #1f2f4a; --glass: rgba(255,255,255,0.34);
+}
+body.misty {
+  --c1: #9aa7a3; --c2: #c9d1cc; --c3: #efe9dc; --c4: #b7b0a0; --c5: #8da093;
+  --cloud: rgba(255,255,255,0.45);
+  --ink: #26302d; --glass: rgba(255,255,255,0.32);
+}
+
+
+/* ============================================================
+   2. PAGE BASICS */
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  place-items: center;          /* puts everything in the middle */
-  font-family: Georgia, serif;
-  background: #cfe8f7;          /* light sky blue */
-  color: #16324a;
-  transition: background 0.6s;  /* smooth color change */
+  place-items: center;               /* puts the content in the middle */
+  font-family: "Nunito Sans", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--c2);             /* backup color while things load */
+
+  /* Slowly blend colors when the weather mood changes */
+  transition-property: --c1, --c2, --c3, --c4, --c5, --cloud, --ink, --glass;
+  transition-duration: 1s;
 }
 
-main { width: min(90%, 380px); text-align: center; }
+.svg-defs { position: absolute; }    /* the invisible filter takes no space */
 
-h1 { font-size: 2rem; margin-bottom: 1rem; }
+main {
+  width: min(92%, 420px);
+  padding: 24px 0;
+  text-align: center;
+}
 
-.search { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+h1 {
+  margin: 0 0 18px;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.8rem, 6vw, 2.3rem);
+  letter-spacing: 0.01em;
+}
+
+
+/* ============================================================
+   3. THE OIL PAINTING BACKGROUND */
+
+.painting {
+  position: fixed;
+  inset: -60px;                      /* a bit bigger than the screen so wobbly edges stay hidden */
+  z-index: -2;
+  /* Layers, top to bottom: sun glow, cloud patches, far hill, near hill, sky */
+  background:
+    radial-gradient(ellipse 34% 26% at 76% 22%, var(--c3) 0%, transparent 72%),
+    radial-gradient(ellipse 46% 14% at 22% 26%, var(--cloud) 0%, transparent 72%),
+    radial-gradient(ellipse 40% 12% at 68% 44%, var(--cloud) 0%, transparent 72%),
+    radial-gradient(ellipse 70% 24% at 20% 104%, var(--c5) 0 70%, transparent 71%),
+    radial-gradient(ellipse 60% 20% at 85% 106%, color-mix(in srgb, var(--c5) 65%, black) 0 70%, transparent 71%),
+    linear-gradient(180deg, var(--c1) 0%, var(--c2) 55%, var(--c4) 80%, var(--c5) 100%);
+  filter: url(#impasto);             /* the "make it oil paint" lens from index.html */
+}
+
+/* Thin brush-stroke stripes laid across the painting */
+.painting::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    8deg,
+    rgba(255,255,255,0.10) 0 18px,
+    rgba(0,0,0,0.06) 18px 40px,
+    rgba(255,255,255,0) 40px 56px
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Faint canvas grain, like the weave of real painting canvas */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+
+/* ============================================================
+   4. SEARCH BOX AND BUTTON */
+
+.search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
 
 input {
   flex: 1;
-  padding: 12px;
+  min-width: 0;                      /* lets the box shrink on small phones */
+  padding: 14px 18px;
+  font: inherit;
   font-size: 1rem;
-  border: 2px solid #16324a;
-  border-radius: 10px;
+  color: var(--ink);
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
 }
+input::placeholder { color: color-mix(in srgb, var(--ink) 55%, transparent); }
 
 button {
-  padding: 12px 18px;
-  font-size: 1rem;
-  background: #16324a;
-  color: white;
-  border: none;
-  border-radius: 10px;
+  padding: 14px 22px;
+  font: inherit;
+  font-weight: 600;
+  color: #1b1b2f;
+  background: linear-gradient(135deg, var(--c3), var(--c4));
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
   cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
 }
-button:hover { background: #2b5a85; }
+button:hover  { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(0,0,0,0.24); }
+button:active { transform: translateY(0); }
+
+/* A clear outline when using the keyboard */
+input:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+
+/* ============================================================
+   5. THE GLASS WEATHER CARD */
 
 .card {
-  background: white;
-  border-radius: 24px;
-  padding: 24px;
+  padding: 28px 24px 24px;
+  background: var(--glass);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 32px;
+  box-shadow:
+    0 20px 50px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.5);   /* a thin bright edge at the top, like light on glass */
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
 }
 
-.icon { font-size: 4rem; margin: 0; }
-.temp { font-size: 3.5rem; margin: 0; font-weight: bold; }
+.city {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+}
 
-/* These classes get added by JavaScript to change the sky color */
-body.rainy  { background: #9fb3c4; }
-body.cloudy { background: #c9d1d8; }
-body.sunny  { background: #ffe29a; }
-body.stormy { background: #7a8794; }
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 4px;
+}
+
+.icon {
+  margin: 0;
+  font-size: clamp(3.4rem, 13vw, 4.6rem);
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.25));
+}
+
+.temp {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(4rem, 17vw, 5.6rem);
+  line-height: 1;
+  font-variation-settings: "opsz" 144;
+}
+
+.description {
+  margin: 0 0 18px;
+  font-size: 1.15rem;
+}
+
+.pills {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.pill {
+  margin: 0;
+  padding: 9px 16px;
+  font-weight: 600;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 999px;
+}
+.pill-label { font-weight: 400; opacity: 0.8; }
+
+
+/* ============================================================
+   6. SMALL SCREENS + REDUCED MOTION */
+
+@media (max-width: 380px) {
+  .pills { flex-direction: column; align-items: center; }
+  .search { flex-direction: column; }
+}
+
+/* Some people turn off motion in their phone settings. We respect that. */
+@media (prefers-reduced-motion: reduce) {
+  body, button { transition: none; }
+}

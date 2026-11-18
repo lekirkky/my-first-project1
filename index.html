@@ -1,34 +1,70 @@
 <!DOCTYPE html>
-<!-- HTML = the SKELETON of the page. It says WHAT is on the page. -->
+<!-- HTML = the SKELETON. It says WHAT is on the page. -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>My Weather</title>
-  <!-- This connects our style file (the PAINT and CLOTHES) -->
+
+  <!-- Two fonts from Google Fonts: Fraunces (soft, painterly) and Nunito Sans (clean) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Nunito+Sans:wght@400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- THE PAINT FILTER (invisible).
+       It roughens edges and adds thick brush-stroke bumps and shadows.
+       The .painting layer below uses it. Think of it as a "make it oil paint" magic lens. -->
+  <svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="impasto" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <!-- 1. Make wobbly noise, then use it to push the colors around (wobbly paint edges) -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="3" seed="4" result="wobble"/>
+      <feDisplacementMap in="SourceGraphic" in2="wobble" scale="55" xChannelSelector="R" yChannelSelector="G" result="warped"/>
+      <!-- 2. Make streaky noise that looks like bristle marks -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.09" numOctaves="4" seed="9" result="bristles"/>
+      <!-- 3. Shine a light on the bristles so they look thick and raised -->
+      <feDiffuseLighting in="bristles" lighting-color="#ffffff" surfaceScale="5" diffuseConstant="1.1" result="light">
+        <feDistantLight azimuth="225" elevation="52"/>
+      </feDiffuseLighting>
+      <!-- 4. Mix the colors with the light and shadow -->
+      <feComposite in="warped" in2="light" operator="arithmetic" k1="1.25" k2="0" k3="0" k4="0"/>
+    </filter>
+  </svg>
+
+  <!-- The painted sky, the sun glow, clouds and hills. All made by CSS. -->
+  <div class="painting" aria-hidden="true"></div>
+  <!-- A very faint canvas texture laid on top of everything -->
+  <div class="grain" aria-hidden="true"></div>
+
   <main>
     <h1>My Weather</h1>
 
-    <!-- A box where you type a city, and a button to search -->
     <div class="search">
-      <input id="cityInput" type="text" placeholder="Type a city, e.g. Hanoi" value="Vung Tau">
+      <input id="cityInput" type="text" placeholder="Type a city, e.g. Hanoi" value="Vung Tau" aria-label="City name">
       <button id="searchBtn">Search</button>
     </div>
 
-    <!-- The weather card. Right now it's empty. JavaScript fills it in! -->
+    <!-- The frosted glass weather card. JavaScript fills it in. -->
     <section class="card">
-      <p id="cityName">Loading...</p>
-      <p id="icon" class="icon"></p>
-      <p id="temp" class="temp"></p>
-      <p id="description"></p>
-      <p id="details"></p>
+      <p id="cityName" class="city">Loading...</p>
+
+      <div class="hero">
+        <p id="icon" class="icon"></p>
+        <p id="temp" class="temp"></p>
+      </div>
+
+      <p id="description" class="description"></p>
+
+      <div class="pills">
+        <p class="pill"><span class="pill-label">Humidity</span> <span id="humidity"></span></p>
+        <p class="pill"><span class="pill-label">Wind</span> <span id="wind"></span></p>
+      </div>
     </section>
   </main>
 
-  <!-- This connects our brain file (JavaScript). It goes LAST. -->
   <script src="script.js"></script>
 </body>
 </html>
